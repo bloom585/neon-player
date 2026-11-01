@@ -5,7 +5,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: unzip -q NeonPlayer.zip
+        with: { fetch-depth: 0 }
+      - name: Unzip newest project
+        run: |
+          ZIP=$(git ls-files '*.zip' | while IFS= read -r f; do echo "$(git log -1 --format=%ct -- "$f")|$f"; done | sort -n | tail -1 | cut -d'|' -f2-)
+          echo "Using: $ZIP"
+          unzip -q "$ZIP"
       - uses: actions/setup-java@v4
         with: { distribution: temurin, java-version: 17 }
       - uses: gradle/actions/setup-gradle@v4
@@ -16,4 +21,3 @@ jobs:
         with:
           name: NeonPlayer-apk
           path: NeonPlayer/app/build/outputs/apk/debug/app-debug.apk
-          

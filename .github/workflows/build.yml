@@ -1,23 +1,36 @@
 name: Build APK
+
 on: [push, workflow_dispatch]
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
+
       - name: Unzip newest project
         run: |
           ZIP=$(git ls-files '*.zip' | while IFS= read -r f; do echo "$(git log -1 --format=%ct -- "$f")|$f"; done | sort -n | tail -1 | cut -d'|' -f2-)
           echo "Using: $ZIP"
           unzip -q "$ZIP"
+          
+          # Автоматически находим имя распакованной папки с проектом (исключая сам zip)
+          PROJECT_DIR=$(find . -maxdepth 1 -type d ! -name '.' ! -name '.*' ! -name '__*' | grep -v '.github' | head -n 1)
+          echo "PROJECT_DIR=$PROJECT_DIR" >> $GITHUB_ENV
+
       - uses: actions/setup-java@v4
         with: { distribution: temurin, java-version: 17 }
+
       - uses: gradle/actions/setup-gradle@v4
         with: { gradle-version: 8.7 }
-      - run: gradle assembleDebug
-        working-directory: NeonPlayer
+
+      - name: Build APK with Gradle
+        run: gradle assembleDebug
+        working-directory: ${{ env.PROJECT_DIR }}
+
       - uses: actions/upload-artifact@v4
         with:
           name: NeonPlayer-apk
-          path: NeonPlayer/app/build/outputs/apk/debug/app-debug.apk
+          path: ${{ env.PROJECT_DIR }}/app/build/outputs/apk/debug/app-debug.apk
+          

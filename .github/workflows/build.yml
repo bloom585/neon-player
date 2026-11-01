@@ -15,7 +15,6 @@ jobs:
           echo "Using: $ZIP"
           unzip -q "$ZIP"
           
-          # Автоматически находим имя распакованной папки с проектом (исключая сам zip)
           PROJECT_DIR=$(find . -maxdepth 1 -type d ! -name '.' ! -name '.*' ! -name '__*' | grep -v '.github' | head -n 1)
           echo "PROJECT_DIR=$PROJECT_DIR" >> $GITHUB_ENV
 
